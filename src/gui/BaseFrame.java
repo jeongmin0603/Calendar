@@ -1,5 +1,6 @@
 package gui;
 
+import java.awt.Color;
 import java.awt.Font;
 
 import javax.swing.JFrame;
@@ -12,8 +13,10 @@ public class BaseFrame {
 		JFrame jf = new JFrame();
 		jf.setSize(w, h);
 		jf.setTitle(title);
-		jf.setLocation(null);
 		jf.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		jf.setLocationRelativeTo(null);
+		jf.setUndecorated(true);
+		jf.setBackground(new Color(0,0,0,0));
 		return jf;
 	}
 	
