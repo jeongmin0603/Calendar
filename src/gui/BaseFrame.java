@@ -15,7 +15,6 @@ public class BaseFrame {
 		jf.setSize(w, h);
 		jf.setTitle(title);
 		jf.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		jf.setLocationRelativeTo(null);
 		jf.setUndecorated(true);
 		jf.setBackground(new Color(0,0,0,0));
 		return jf;

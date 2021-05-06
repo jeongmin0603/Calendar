@@ -2,13 +2,18 @@ package gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -16,29 +21,37 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
+import db.Colors;
+import db.Data;
+import db.Schedule;
+
 public class CalendarFrame extends BaseFrame {
-	JFrame jf = createBaseFrame(500, 600, "달력");
+	JFrame jf = createBaseFrame(700, 800, "달력");
 	JPanel titleDatePanel = new JPanel(new FlowLayout());
-	JPanel datePanel = new JPanel(new GridLayout(0,7));
-	int year;
-	int month;
+	static JPanel datePanel = new JPanel(new GridLayout(0, 7));
+
+	static int year;
+	static int month;
 
 	public CalendarFrame() {
+		Colors.setSheduleColors();
+
 		JPanel panel = new JPanel(new BorderLayout());
-		
 		Calendar cal = Calendar.getInstance();
 		year = cal.get(Calendar.YEAR);
 		month = cal.get(Calendar.MONTH);
-		
+
 		panel.add(setTitlePanel(), BorderLayout.NORTH);
 		panel.add(getDatePanel(), BorderLayout.CENTER);
-		
+
+		jf.setLocation(1220, 0);
 		jf.add(panel);
 		jf.setVisible(true);
 	}
+
 	private JPanel getDatePanel() {
-		JPanel panel = new JPanel(new BorderLayout());
-		
+		JPanel panel = new JPanel(new BorderLayout(10, 10));
+
 		JPanel dayOfWeekPanel = new JPanel(new GridLayout(0, 7));
 		for (int i = 0; i < 7; i++) {
 			JLabel dayOfWeek = new JLabel(getDayOfWeek(i));
@@ -46,23 +59,24 @@ public class CalendarFrame extends BaseFrame {
 			dayOfWeek.setHorizontalAlignment(JLabel.CENTER);
 			dayOfWeekPanel.add(dayOfWeek);
 		}
-		
+
 		setDatePanel();
-		
+
 		panel.add(dayOfWeekPanel, BorderLayout.NORTH);
 		panel.add(datePanel, BorderLayout.CENTER);
-		
+
 		return panel;
 	}
+
 	private JPanel setTitlePanel() {
-		JPanel panel = new JPanel(new FlowLayout());
-		
+		JPanel panel = new JPanel(new BorderLayout());
+
 		JPanel back = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		JPanel next = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		
+
 		ImageIcon icon;
-		Image img; 
-		
+		Image img;
+
 		icon = new ImageIcon(System.getProperty("user.dir") + "\\icon\\arrow_back.png");
 		img = icon.getImage();
 		img = img.getScaledInstance(40, 40, Image.SCALE_SMOOTH);
@@ -72,11 +86,15 @@ public class CalendarFrame extends BaseFrame {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				month--;
+				if (month + 1 < 1) {
+					year--;
+					month = 11;
+				}
 				setTitleDatePanel();
 				setDatePanel();
 			}
 		});
-		
+
 		icon = new ImageIcon(System.getProperty("user.dir") + "\\icon\\arrow_next.png");
 		img = icon.getImage();
 		img = img.getScaledInstance(40, 40, Image.SCALE_SMOOTH);
@@ -86,43 +104,90 @@ public class CalendarFrame extends BaseFrame {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				month++;
+				if (month + 1 > 12) {
+					year++;
+					month = 0;
+				}
 				setTitleDatePanel();
 				setDatePanel();
 			}
 		});
-		
+
+		JPanel date = new JPanel(new FlowLayout());
+
 		setTitleDatePanel();
-		panel.add(back);
-		panel.add(titleDatePanel);
-		panel.add(next);
+		date.add(back);
+		date.add(titleDatePanel);
+		date.add(next);
+
+		icon = new ImageIcon(System.getProperty("user.dir") + "\\icon\\close.png");
+		img = icon.getImage();
+		img = img.getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+		icon = new ImageIcon(img);
+		JLabel close = new JLabel(icon);
+
+		close.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				System.exit(0);
+				super.mouseClicked(e);
+			}
+		});
+
+		panel.add(close, BorderLayout.EAST);
+		panel.add(date, BorderLayout.CENTER);
 		return panel;
 	}
-	private void setDatePanel() {
+
+	public static void setDatePanel() {
 		datePanel.removeAll();
-		
+
 		Calendar cal = Calendar.getInstance();
 		cal.set(year, month, 1);
-		
-		int day = 1; 
+
+		int day = 1;
 		int max = cal.getActualMaximum(Calendar.DATE);
 		int start = cal.get(Calendar.DAY_OF_WEEK);
-		
-		for(int i = 1; day <= max; i++) {
-			if(start <= i) {
+
+		for (int i = 1; day <= max; i++) {
+			if (start <= i) {
 				JPanel p = new JPanel(new BorderLayout());
-				p.setBackground(Color.white);
-				
+
 				JPanel flow = new JPanel(new FlowLayout(FlowLayout.LEFT));
-				JLabel date = new JLabel(Integer.toString(day++));
-				date.setFont(new Font("HY헤드라인M", Font.PLAIN, 15));
+				JLabel date = new JLabel(Integer.toString(day));
+				date.setFont(new Font(Data.getFont(), Font.PLAIN, 15));
+				
+				if (i % 7 == 1)
+					date.setForeground(Colors.getSundayColor());
+				else if (i % 7 == 0)
+					date.setForeground(Colors.getSaturdayColor());
+
+				String now = String.format("%04d-%02d-%02d", year, month, day);
+				if (Data.schedule.containsKey(now)) {
+					p.add(getSchedulePanel(now), BorderLayout.CENTER);
+				}
+
 				flow.setBackground(Color.WHITE);
 				flow.add(date);
-				
+
 				p.add(flow, BorderLayout.NORTH);
-				
+
+				p.addMouseListener(new MouseAdapter() {
+					@Override
+					public void mouseClicked(MouseEvent e) {
+						super.mouseClicked(e);
+						if (e.getClickCount() == 2) {
+							System.out.println(p.getX() + " : " + p.getY());
+							new AddScheduleFrame(p.getName(), p.getX() + 1220, p.getY() + 115);
+						}
+					}
+				});
+				p.setName(now);
 				p.setBorder(new LineBorder(new Color(209, 209, 209)));
-				
+				p.setBackground(Color.white);
 				datePanel.add(p);
+
+				day++;
 			} else {
 				datePanel.add(new JPanel());
 			}
@@ -130,34 +195,58 @@ public class CalendarFrame extends BaseFrame {
 		datePanel.revalidate();
 		datePanel.repaint();
 	}
+	private static JPanel getSchedulePanel(String date) {
+		JPanel panel = new JPanel(new GridLayout(0, 1));
+		
+		for (int j = 0; j < Data.schedule.get(date).size(); j++) {
+			JPanel line = new JPanel(new FlowLayout(FlowLayout.LEFT));
+			Schedule s = Data.schedule.get(date).get(j);
 
+			JLabel label = new JLabel(s.getText());
+			label.setFont(new Font(Data.getFont(), Font.PLAIN, 10));
+
+			if (s.getColor() != null) {
+				line.setBackground(s.getColor());
+			} else {
+				line.setBackground(Color.WHITE);
+			}
+
+			line.add(label);
+			panel.add(line);
+		}
+		
+		panel.setBackground(Color.WHITE);
+		
+		return panel;
+	}
 	private void setTitleDatePanel() {
 		titleDatePanel.removeAll();
-		
+
 		JPanel yearAndMonthPanel = new JPanel(new BorderLayout());
-		
+
 		JLabel monthInt = new JLabel(String.format("%02d", this.month + 1));
-		monthInt.setFont(new Font("HY헤드라인M", Font.PLAIN, 60));
-		
+		monthInt.setFont(new Font(Data.getFont(), Font.PLAIN, 60));
+
 		JLabel monthStr = new JLabel(getMonthString(this.month + 1));
-		monthStr.setFont(new Font("HY헤드라인M", Font.BOLD, 25));
+		monthStr.setFont(new Font(Data.getFont(), Font.BOLD, 25));
 		monthStr.setForeground(Color.gray);
-		
-		JLabel yearStr =  new JLabel(Integer.toString(year));
-		yearStr.setFont(new Font("HY헤드라인M", Font.BOLD, 25));
+
+		JLabel yearStr = new JLabel(Integer.toString(year));
+		yearStr.setFont(new Font(Data.getFont(), Font.BOLD, 25));
 		yearStr.setForeground(Color.gray);
-		
+
 		yearAndMonthPanel.add(yearStr, BorderLayout.SOUTH);
 		yearAndMonthPanel.add(monthStr, BorderLayout.NORTH);
-		
+
 		titleDatePanel.add(monthInt);
 		titleDatePanel.add(yearAndMonthPanel);
-		
+
 		titleDatePanel.revalidate();
 	}
+
 	private String getDayOfWeek(int date) {
 		String dateOfWeek = "";
-		
+
 		switch (date) {
 		case 0:
 			dateOfWeek = "SUN";
@@ -182,12 +271,12 @@ public class CalendarFrame extends BaseFrame {
 			break;
 
 		}
-		
+
 		return dateOfWeek;
 	}
 	private String getMonthString(int month) {
 		String monthStr = "";
-		
+
 		switch (month) {
 		case 1:
 			monthStr = "January";
