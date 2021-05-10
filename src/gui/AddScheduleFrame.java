@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -13,16 +14,20 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.border.LineBorder;
 
+import db.Colors;
 import db.Data;
 import db.Schedule;
 
 public class AddScheduleFrame extends BaseFrame {
-	JFrame jf = createBaseFrame(140, 150, "스케줄 추가");
+	static JFrame menu = createBaseFrame(140, 150);
+	static JFrame colorPalette = createBaseFrame(100, 50);
 	JTextField text = new JTextField();
 	Color pick = null;
 	String date;
@@ -30,21 +35,60 @@ public class AddScheduleFrame extends BaseFrame {
 	int y;
 
 	public AddScheduleFrame(String date, int x, int y) {
+		if(menu.isVisible()) {
+			menu.setVisible(false);
+		} 
+		if (colorPalette.isVisible()) {
+			colorPalette.setVisible(false);
+		}
+		menu = createBaseFrame(140, 150);
+		colorPalette = createBaseFrame(100, 50);
+		
 		this.date = date;
 		this.x = x;
 		this.y = y;
-
+		setColorPaletteFrame();
+		
 		JPanel panel = new JPanel(new BorderLayout());
 
 		panel.add(getTitlePanel(), BorderLayout.NORTH);
 		panel.add(getInputPanel(), BorderLayout.CENTER);
 		panel.add(getNavPanel(), BorderLayout.SOUTH);
 		
-		jf.add(panel);
-		jf.setLocation(x, y);
-		jf.setVisible(true);
+		menu.add(panel);
+		menu.setLocation(x + 1220, y + 115);
+		menu.setVisible(true);
 	}
-	
+
+	private void setColorPaletteFrame() {
+		JPanel panel = new JPanel(new BorderLayout());
+		
+		panel.add(getColorPalette(), BorderLayout.CENTER);
+		
+		colorPalette.add(panel);
+	}
+	private JPanel getColorPalette() {
+		JPanel panel = new JPanel(new FlowLayout());
+		
+		JPanel palette = new JPanel(new GridLayout(0, 5, 1, 1));
+		for (int i = 0; i < Colors.getCheckColors().size(); i++) {
+			JPanel p = new JPanel(new FlowLayout());
+			JButton btn = new JButton();
+			btn.setBackground(Color.BLACK);
+			btn.setBackground(Colors.getCheckColors().get(i));
+			btn.addActionListener(v -> {
+				pick = btn.getBackground();
+				
+			
+			});
+			btn.setPreferredSize(new Dimension(19, 19));
+			palette.add(btn);
+		}
+		panel.add(palette);
+		
+		return panel;
+	}
+
 	private JPanel getInputPanel() {
 		JPanel panel = new JPanel(new FlowLayout());
 		
@@ -74,8 +118,12 @@ public class AddScheduleFrame extends BaseFrame {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				super.mouseClicked(e);
-				
-				new ColorPalette(x - 140, y);
+				if (colorPalette.isVisible()) {
+					colorPalette.setVisible(false);
+				} else {
+					colorPalette.setLocation(x + 1220, y + 265);
+					colorPalette.setVisible(true);
+				}
 			}
 		});
 		
@@ -89,14 +137,20 @@ public class AddScheduleFrame extends BaseFrame {
 			public void mouseClicked(MouseEvent e) {
 				super.mouseClicked(e);
 				
-				if(!Data.schedule.containsKey(date)) {					
-					Data.schedule.put(date, new ArrayList<Schedule>());
-				} 
-				Data.schedule.get(date).add(new Schedule(text.getText()));
-				
-				CalendarFrame.setDatePanel();
-				
-				jf.setVisible(false);
+				if(!text.getText().isEmpty()) {
+					if(!Data.schedule.containsKey(date)) {					
+						Data.schedule.put(date, new ArrayList<Schedule>());
+					} 
+					if (pick != null) {
+						Data.schedule.get(date).add(new Schedule(text.getText(), pick));
+					} else {						
+						Data.schedule.get(date).add(new Schedule(text.getText()));
+					}
+					
+					CalendarFrame.setDatePanel();
+				}
+				menu.setVisible(false);
+				colorPalette.setVisible(false);
 			}
 		});
 		return panel;
@@ -117,7 +171,8 @@ public class AddScheduleFrame extends BaseFrame {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				super.mouseClicked(e);
-				jf.setVisible(false);
+				menu.setVisible(false);
+				colorPalette.setVisible(false);
 			}
 		});
 		

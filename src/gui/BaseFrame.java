@@ -10,10 +10,9 @@ import javax.swing.JLabel;
 import db.Colors;
 
 public class BaseFrame {
-	public JFrame createBaseFrame(int w, int h, String title) {
+	public static JFrame createBaseFrame(int w, int h) {
 		JFrame jf = new JFrame();
 		jf.setSize(w, h);
-		jf.setTitle(title);
 		jf.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		jf.setUndecorated(true);
 		jf.setBackground(new Color(0,0,0,0));

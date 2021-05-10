@@ -18,6 +18,7 @@ import java.util.Map;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
@@ -26,7 +27,7 @@ import db.Data;
 import db.Schedule;
 
 public class CalendarFrame extends BaseFrame {
-	JFrame jf = createBaseFrame(700, 800, "달력");
+	JFrame jf = createBaseFrame(700, 800);
 	JPanel titleDatePanel = new JPanel(new FlowLayout());
 	static JPanel datePanel = new JPanel(new GridLayout(0, 7));
 
@@ -37,6 +38,7 @@ public class CalendarFrame extends BaseFrame {
 		Colors.setSheduleColors();
 
 		JPanel panel = new JPanel(new BorderLayout());
+		panel.setBackground(new Color(0, 0, 0));
 		Calendar cal = Calendar.getInstance();
 		year = cal.get(Calendar.YEAR);
 		month = cal.get(Calendar.MONTH);
@@ -142,6 +144,8 @@ public class CalendarFrame extends BaseFrame {
 	public static void setDatePanel() {
 		datePanel.removeAll();
 
+		Map<String, String> holidays = db.Holiday.getHoliday(year, month + 1);
+
 		Calendar cal = Calendar.getInstance();
 		cal.set(year, month, 1);
 
@@ -152,23 +156,35 @@ public class CalendarFrame extends BaseFrame {
 		for (int i = 1; day <= max; i++) {
 			if (start <= i) {
 				JPanel p = new JPanel(new BorderLayout());
-
+				
 				JPanel flow = new JPanel(new FlowLayout(FlowLayout.LEFT));
 				JLabel date = new JLabel(Integer.toString(day));
+				
 				date.setFont(new Font(Data.getFont(), Font.PLAIN, 15));
 				
-				if (i % 7 == 1)
+				String holiday = holidays.get(String.format("%04d%02d%02d", year, month + 1, day));
+			
+				if (i % 7 == 1 || holiday != null)
 					date.setForeground(Colors.getSundayColor());
 				else if (i % 7 == 0)
 					date.setForeground(Colors.getSaturdayColor());
-
+					
+				flow.setBackground(Color.WHITE);
+				flow.add(date);
+					
+				if(holiday != null) {
+					JLabel hol = new JLabel(holiday);
+					hol.setFont(new Font(Data.getFont(), Font.PLAIN, 10));
+					hol.setForeground(Colors.getSundayColor());
+					flow.add(hol);
+				}
+				
 				String now = String.format("%04d-%02d-%02d", year, month, day);
+
 				if (Data.schedule.containsKey(now)) {
 					p.add(getSchedulePanel(now), BorderLayout.CENTER);
 				}
 
-				flow.setBackground(Color.WHITE);
-				flow.add(date);
 
 				p.add(flow, BorderLayout.NORTH);
 
@@ -177,8 +193,14 @@ public class CalendarFrame extends BaseFrame {
 					public void mouseClicked(MouseEvent e) {
 						super.mouseClicked(e);
 						if (e.getClickCount() == 2) {
-							System.out.println(p.getX() + " : " + p.getY());
-							new AddScheduleFrame(p.getName(), p.getX() + 1220, p.getY() + 115);
+							if (Data.schedule.containsKey(p.getName())) {
+								if (Data.schedule.get(p.getName()).size() > 4) {
+									JOptionPane.showMessageDialog(null, "스케줄은 최대 4개까지 입력 가능합니다.", "경고",
+											JOptionPane.ERROR_MESSAGE);
+									return;
+								}
+							}
+							new AddScheduleFrame(p.getName(), p.getX(), p.getY());
 						}
 					}
 				});
@@ -195,9 +217,10 @@ public class CalendarFrame extends BaseFrame {
 		datePanel.revalidate();
 		datePanel.repaint();
 	}
+
 	private static JPanel getSchedulePanel(String date) {
 		JPanel panel = new JPanel(new GridLayout(0, 1));
-		
+
 		for (int j = 0; j < Data.schedule.get(date).size(); j++) {
 			JPanel line = new JPanel(new FlowLayout(FlowLayout.LEFT));
 			Schedule s = Data.schedule.get(date).get(j);
@@ -214,11 +237,15 @@ public class CalendarFrame extends BaseFrame {
 			line.add(label);
 			panel.add(line);
 		}
-		
+
 		panel.setBackground(Color.WHITE);
-		
-		return panel;
+
+		JPanel flow = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		flow.setBackground(Color.white);
+		flow.add(panel);
+		return flow;
 	}
+
 	private void setTitleDatePanel() {
 		titleDatePanel.removeAll();
 
@@ -274,6 +301,7 @@ public class CalendarFrame extends BaseFrame {
 
 		return dateOfWeek;
 	}
+
 	private String getMonthString(int month) {
 		String monthStr = "";
 
