@@ -2,14 +2,18 @@ package gui;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Image;
 
-import javax.swing.JButton;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
-import db.Colors;
+import db.Style;
 
 public class BaseFrame {
+	static Color background = null;
+	static Color font = null;
+	
 	public static JFrame createBaseFrame(int w, int h) {
 		JFrame jf = new JFrame();
 		jf.setSize(w, h);
@@ -19,13 +23,16 @@ public class BaseFrame {
 		return jf;
 	}
 	
-	public JLabel getTextField(int size) {
-		JLabel text = new JLabel();
-		text.setFont(new Font("맑은 고딕", Font.BOLD, size));
-		text.setForeground(Colors.getFontColor());
-		return text;
+	public static JLabel getTextLabel(String text, int size, Color color) {
+		JLabel label = new JLabel(text);
+		label.setFont(new Font("HY헤드라인M", Font.PLAIN, size));
+		label.setForeground(color);
+		return label;
+	}
+ 	
+	public static ImageIcon getImageIcon(String file, int width, int heigth) {
+		return new ImageIcon(new ImageIcon(System.getProperty("user.dir") + "\\icon\\" + file).getImage().getScaledInstance(width, heigth, Image.SCALE_SMOOTH));
 	}
 	
-
 	
 }

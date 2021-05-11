@@ -21,103 +21,122 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.LineBorder;
 
-import db.Colors;
+import db.Style;
 import db.Data;
 import db.Schedule;
 
 public class AddScheduleFrame extends BaseFrame {
-	static JFrame menu = createBaseFrame(140, 150);
-	static JFrame colorPalette = createBaseFrame(100, 50);
+	static JFrame menu = new JFrame();
+	static JFrame colorPalette = new JFrame();
 	JTextField text = new JTextField();
 	Color pick = null;
 	String date;
+
 	int x;
 	int y;
 
 	public AddScheduleFrame(String date, int x, int y) {
-		if(menu.isVisible()) {
+		if (menu.isVisible()) {
 			menu.setVisible(false);
-		} 
+		}
 		if (colorPalette.isVisible()) {
 			colorPalette.setVisible(false);
 		}
+
 		menu = createBaseFrame(140, 150);
 		colorPalette = createBaseFrame(100, 50);
-		
+
 		this.date = date;
 		this.x = x;
 		this.y = y;
-		setColorPaletteFrame();
-		
-		JPanel panel = new JPanel(new BorderLayout());
 
+		setColorPaletteFrame();
+
+		JPanel panel = new JPanel(new BorderLayout());
+		panel.setBorder(new LineBorder(Color.gray));
 		panel.add(getTitlePanel(), BorderLayout.NORTH);
 		panel.add(getInputPanel(), BorderLayout.CENTER);
 		panel.add(getNavPanel(), BorderLayout.SOUTH);
-		
+
+		panel.setBackground(background);
 		menu.add(panel);
-		menu.setLocation(x + 1220, y + 115);
+		menu.setLocation(x + 1160, y + 157);
 		menu.setVisible(true);
 	}
 
 	private void setColorPaletteFrame() {
 		JPanel panel = new JPanel(new BorderLayout());
-		
+
 		panel.add(getColorPalette(), BorderLayout.CENTER);
-		
+		panel.setBackground(background);
+
 		colorPalette.add(panel);
 	}
+
 	private JPanel getColorPalette() {
 		JPanel panel = new JPanel(new FlowLayout());
-		
+		panel.setBackground(background);
+
 		JPanel palette = new JPanel(new GridLayout(0, 5, 1, 1));
-		for (int i = 0; i < Colors.getCheckColors().size(); i++) {
-			JPanel p = new JPanel(new FlowLayout());
+		palette.setBackground(background);
+
+		for (int i = 0; i < Style.getCheckColors().size(); i++) {
 			JButton btn = new JButton();
 			btn.setBackground(Color.BLACK);
-			btn.setBackground(Colors.getCheckColors().get(i));
+			btn.setBackground(Style.getCheckColors().get(i));
 			btn.addActionListener(v -> {
 				pick = btn.getBackground();
-				
-			
+				colorPalette.dispose();
 			});
 			btn.setPreferredSize(new Dimension(19, 19));
 			palette.add(btn);
 		}
 		panel.add(palette);
-		
+
 		return panel;
 	}
 
 	private JPanel getInputPanel() {
 		JPanel panel = new JPanel(new FlowLayout());
-		
-		text.setPreferredSize(new Dimension(140, 80));
-		panel.add(text);
+
+		text.setPreferredSize(new Dimension(130, 65));
 		text.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				if(!text.getText().isEmpty()) {
-					if(text.getText().length() > 10) {
-						System.out.println(text.getText());
+				if (!text.getText().isEmpty()) {
+					if (text.getText().length() > 10) {
 						text.setText(text.getText().substring(0, 10));
 						CalendarFrame.setDatePanel();
 					}
 				}
 			}
+
 		});
+		panel.setBackground(background);
+		panel.add(text);
 		return panel;
 	}
-	
+
+	private String getFilePath() {
+		String file;
+		if (background.equals(Style.getBackgroundColor_dark())) {
+			file = "dark";
+		} else {
+			file = "light";
+		}
+		return file;
+	}
+
 	private JPanel getNavPanel() {
 		JPanel panel = new JPanel(new FlowLayout());
-		
-		ImageIcon icon = new ImageIcon(new ImageIcon(System.getProperty("user.dir") + "\\icon\\palette.png").getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
-		JLabel palette = new JLabel(icon);
+		panel.setBackground(background);
+
+		JPanel palette = new JPanel(new FlowLayout());
+		palette.setBackground(background);
+		palette.add(new JLabel(getImageIcon(getFilePath() + "\\palette.png", 20, 20)));
 		palette.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				super.mouseClicked(e);
 				if (colorPalette.isVisible()) {
 					colorPalette.setVisible(false);
 				} else {
@@ -126,47 +145,50 @@ public class AddScheduleFrame extends BaseFrame {
 				}
 			}
 		});
-		
-		icon = new ImageIcon(new ImageIcon(System.getProperty("user.dir") + "\\icon\\check.png").getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
-		JLabel complete = new JLabel(icon);
-		
-		panel.add(palette);
-		panel.add(complete);
+
+		JPanel complete = new JPanel(new FlowLayout());
+		complete.add(new JLabel(getImageIcon(getFilePath() + "\\check.png", 20, 20)));
+		complete.setBackground(background);
 		complete.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				super.mouseClicked(e);
-				
-				if(!text.getText().isEmpty()) {
-					if(!Data.schedule.containsKey(date)) {					
+				if (!text.getText().isEmpty()) {
+					if (!Data.schedule.containsKey(date)) {
 						Data.schedule.put(date, new ArrayList<Schedule>());
-					} 
+					}
 					if (pick != null) {
 						Data.schedule.get(date).add(new Schedule(text.getText(), pick));
-					} else {						
+					} else {
 						Data.schedule.get(date).add(new Schedule(text.getText()));
 					}
-					
+
 					CalendarFrame.setDatePanel();
 				}
+				
 				menu.setVisible(false);
 				colorPalette.setVisible(false);
 			}
 		});
+
+		panel.add(palette);
+		panel.add(complete);
+
 		return panel;
 	}
+
 	private JPanel getTitlePanel() {
 		JPanel panel = new JPanel(new FlowLayout());
+		panel.setBackground(background);
+		
 		String[] split = date.split("-");
 
 		JPanel now = new JPanel(new FlowLayout());
-		JLabel nowLabel = new JLabel(split[0] + "년 " + split[1] + "월 " + split[2] + "일");
-		nowLabel.setFont(new Font("HY헤드라인M", Font.PLAIN, 12));
-		now.add(nowLabel);
+		now.add(getTextLabel(split[0] + "년 " + split[1] + "월 " + split[2] + "일", 11, font));
+		now.setBackground(background);
 
-		ImageIcon icon = new ImageIcon(new ImageIcon(System.getProperty("user.dir") + "\\icon\\close.png").getImage()
-				.getScaledInstance(17, 17, Image.SCALE_SMOOTH));
-		JLabel close = new JLabel(icon);
+		JPanel close = new JPanel(new FlowLayout());
+		close.add(new JLabel(getImageIcon("light\\close.png", 10, 10)));
+		close.setBackground(background);
 		close.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -175,7 +197,7 @@ public class AddScheduleFrame extends BaseFrame {
 				colorPalette.setVisible(false);
 			}
 		});
-		
+
 		panel.add(now);
 		panel.add(close);
 

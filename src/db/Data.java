@@ -6,9 +6,4 @@ import java.util.Map;
 
 public class Data {
 	public static Map<String, List<Schedule>> schedule = new HashMap<>();
-	public static String font = "HY헤드라인M";
-	
-	public static String getFont() {
-		return font;
-	}
 }

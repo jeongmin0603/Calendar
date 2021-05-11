@@ -1,10 +1,10 @@
 package gui;
 
-import db.Colors;
+import db.Style;
 
 public class Main {
 	public static void main(String[] args) {
-		Colors.setSheduleColors();
+		Style.setSheduleColors();
 		new CalendarFrame();
 	}
 }

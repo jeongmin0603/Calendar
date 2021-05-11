@@ -18,5 +18,4 @@ public class Schedule {
 	public Color getColor() {
 		return color;
 	}
-	
 }
