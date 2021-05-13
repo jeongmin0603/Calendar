@@ -315,6 +315,7 @@ public class CalendarFrame extends BaseFrame {
 								int answer = JOptionPane.showConfirmDialog(null, "삭제하시겠습니까?", "경고", JOptionPane.ERROR_MESSAGE);
 								if(answer == 0) {
 									Data.setDb("delete from schedule where s_no = '" + line.getName() + "'");
+									setDatePanel();
 								}
 							}
 						}
