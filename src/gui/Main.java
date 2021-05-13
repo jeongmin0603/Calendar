@@ -8,9 +8,8 @@ public class Main {
 		Style.setSheduleColors();
 		
 		if(!Data.isDbInit()) {
-			System.out.println("hello");
+			Data.createDb();
 		}
-		Data.createDb();
 		
 		new CalendarFrame();
 	}

@@ -303,14 +303,24 @@ public class CalendarFrame extends BaseFrame {
 					JLabel label = getTextLabel(rs.getString("text"), 10, font);
 
 					if(rs.getString("c_no") != null) {				
-						System.out.println(Style.checkColors.get(rs.getInt("c_no")));
 						line.setBackground(Style.checkColors.get(rs.getInt("c_no")));		
 					}else {
 						line.setBackground(background);	
 					}					
-
+						
+					line.addMouseListener(new MouseAdapter() {
+						@Override
+						public void mouseClicked(MouseEvent e) {
+							if(e.getClickCount() == 2) {
+								int answer = JOptionPane.showConfirmDialog(null, "삭제하시겠습니까?", "경고", JOptionPane.ERROR_MESSAGE);
+								if(answer == 0) {
+									Data.setDb("delete from schedule where s_no = '" + line.getName() + "'");
+								}
+							}
+						}
+					});
 					line.add(label);
-					line.setName(rs.getString("date") + "|" + rs.getString("text"));
+					line.setName(rs.getString("s_no"));
 					panel.add(line);
 				}				
 				rs.close();

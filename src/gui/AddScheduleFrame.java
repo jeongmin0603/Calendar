@@ -163,7 +163,7 @@ public class AddScheduleFrame extends BaseFrame {
 							
 							Data.setDb("insert into schedule(date, text, c_no) values('" + date + "', '" + text.getText() + "', '" + cnt + "')");
 						} else {
-							Data.setDb("insert into schedule(date, text, c_no) values('" + date.replace("-", "") + "', '" + text.getText() + "')");
+							Data.setDb("insert into schedule(date, text) values('" + date.replace("-", "") + "', '" + text.getText() + "')");
 						}
 
 						CalendarFrame.setDatePanel();
