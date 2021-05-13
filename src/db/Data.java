@@ -43,7 +43,7 @@ public class Data {
 			}
 			rs.close();
 		} catch (SQLException e) {
-			e.printStackTrace();
+			return false;
 		}
 		return exists;
 	}
@@ -66,9 +66,11 @@ public class Data {
 					"  `b` INT NULL,\r\n" + 
 					"  PRIMARY KEY (`c_no`))");
 			stmt.execute("CREATE TABLE IF NOT EXISTS `schedule` (\r\n" + 
+					"  `s_no` INT NOT NULL AUTO_INCREMENT,\r\n" + 
 					"  `date` DATE NULL,\r\n" + 
 					"  `text` VARCHAR(45) NOT NULL,\r\n" + 
-					"  `c_no` INT NULL)");
+					"  `c_no` INT NULL,\r\n" + 
+					"  PRIMARY KEY (`s_no`))");
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

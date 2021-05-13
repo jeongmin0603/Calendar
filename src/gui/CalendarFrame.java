@@ -7,6 +7,7 @@ import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Map;
@@ -300,18 +301,16 @@ public class CalendarFrame extends BaseFrame {
 					JPanel line = new JPanel(new FlowLayout(FlowLayout.LEFT));
 					
 					JLabel label = getTextLabel(rs.getString("text"), 10, font);
-					
-					if(rs.getInt("c_no") != 0) {						
-						ResultSet rs1 = Data.getResultSet("select * from color where c_no = '" + rs.getInt("c_no") + "'");
-						if(rs1.next()) {
-							line.setBackground(new Color(rs1.getInt("r"), rs1.getInt("g"), rs1.getInt("b")));							
-						}
-						rs1.close();
+
+					if(rs.getString("c_no") != null) {				
+						System.out.println(Style.checkColors.get(rs.getInt("c_no")));
+						line.setBackground(Style.checkColors.get(rs.getInt("c_no")));		
 					}else {
-						line.setBackground(background);						
-					}
-					
+						line.setBackground(background);	
+					}					
+
 					line.add(label);
+					line.setName(rs.getString("date") + "|" + rs.getString("text"));
 					panel.add(line);
 				}				
 				rs.close();
@@ -325,8 +324,6 @@ public class CalendarFrame extends BaseFrame {
 		
 		return flow;
 	}
-
-	
 
 	private String getDayOfWeek(int date) {
 		String dateOfWeek = "";

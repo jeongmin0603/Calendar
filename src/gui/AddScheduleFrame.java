@@ -153,18 +153,17 @@ public class AddScheduleFrame extends BaseFrame {
 				try {
 					if (!text.getText().isEmpty()) {
 						if (pick != null) {
-							int cnt = 1;
-							
-							Data.setDb("insert into color(r, g, b) values('" + pick.getRed() + "', '" + pick.getGreen() + "', '" + pick.getBlue() + "')");
-							ResultSet rs = Data.getResultSet("select count(*) from color");
-							if(rs.next()) {
-								cnt = rs.getInt("count(*)");
+							int cnt = 0;
+							for(int i = 0; i < Style.checkColors.size(); i++) {
+								if(pick.equals(Style.getCheckColors().get(i))) {
+									cnt = i;
+									break;
+								}
 							}
-							rs.close();
 							
 							Data.setDb("insert into schedule(date, text, c_no) values('" + date + "', '" + text.getText() + "', '" + cnt + "')");
 						} else {
-							Data.setDb("insert into schedule(date, text) values('" + date.replace("-", "") + "', '" + text.getText() +  "')");
+							Data.setDb("insert into schedule(date, text, c_no) values('" + date.replace("-", "") + "', '" + text.getText() + "')");
 						}
 
 						CalendarFrame.setDatePanel();

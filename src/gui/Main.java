@@ -8,9 +8,9 @@ public class Main {
 		Style.setSheduleColors();
 		
 		if(!Data.isDbInit()) {
-			System.out.println("asdf");
-			Data.createDb();
+			System.out.println("hello");
 		}
+		Data.createDb();
 		
 		new CalendarFrame();
 	}
