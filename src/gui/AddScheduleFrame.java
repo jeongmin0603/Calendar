@@ -4,16 +4,14 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Font;
 import java.awt.GridLayout;
-import java.awt.Image;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -21,9 +19,9 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.LineBorder;
 
-import db.Style;
 import db.Data;
 import db.Schedule;
+import db.Style;
 
 public class AddScheduleFrame extends BaseFrame {
 	static JFrame menu = new JFrame();
@@ -51,7 +49,7 @@ public class AddScheduleFrame extends BaseFrame {
 		this.y = y;
 
 		setColorPaletteFrame();
-
+		
 		JPanel panel = new JPanel(new BorderLayout());
 		panel.setBorder(new LineBorder(Color.gray));
 		panel.add(getTitlePanel(), BorderLayout.NORTH);
@@ -152,21 +150,30 @@ public class AddScheduleFrame extends BaseFrame {
 		complete.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				if (!text.getText().isEmpty()) {
-					if (!Data.schedule.containsKey(date)) {
-						Data.schedule.put(date, new ArrayList<Schedule>());
-					}
-					if (pick != null) {
-						Data.schedule.get(date).add(new Schedule(text.getText(), pick));
-					} else {
-						Data.schedule.get(date).add(new Schedule(text.getText()));
-					}
+				try {
+					if (!text.getText().isEmpty()) {
+						if (pick != null) {
+							int cnt = 1;
+							
+							Data.setDb("insert into color(r, g, b) values('" + pick.getRed() + "', '" + pick.getGreen() + "', '" + pick.getBlue() + "')");
+							ResultSet rs = Data.getResultSet("select count(*) from color");
+							if(rs.next()) {
+								cnt = rs.getInt("count(*)");
+							}
+							rs.close();
+							
+							Data.setDb("insert into schedule(date, text, c_no) values('" + date + "', '" + text.getText() + "', '" + cnt + "')");
+						} else {
+							Data.setDb("insert into schedule(date, text) values('" + date.replace("-", "") + "', '" + text.getText() +  "')");
+						}
 
-					CalendarFrame.setDatePanel();
-				}
+						CalendarFrame.setDatePanel();
+					}
+					
+					menu.setVisible(false);
+					colorPalette.setVisible(false);
+				} catch(Exception e1) {e1.printStackTrace();} 
 				
-				menu.setVisible(false);
-				colorPalette.setVisible(false);
 			}
 		});
 
@@ -180,10 +187,8 @@ public class AddScheduleFrame extends BaseFrame {
 		JPanel panel = new JPanel(new FlowLayout());
 		panel.setBackground(background);
 		
-		String[] split = date.split("-");
-
 		JPanel now = new JPanel(new FlowLayout());
-		now.add(getTextLabel(split[0] + "년 " + split[1] + "월 " + split[2] + "일", 11, font));
+		now.add(getTextLabel(date.substring(0, 4) + "년 " + date.substring(5, 6) + "월 " + date.substring(7, 8) + "일", 12, font));
 		now.setBackground(background);
 
 		JPanel close = new JPanel(new FlowLayout());

@@ -2,31 +2,24 @@ package gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Font;
 import java.awt.GridLayout;
-import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
-import db.Style;
 import db.Data;
 import db.Holiday;
-import db.Schedule;
+import db.Style;
 
 public class CalendarFrame extends BaseFrame {
 	ArrayList<JLabel> labels = new ArrayList<JLabel>();
@@ -236,7 +229,9 @@ public class CalendarFrame extends BaseFrame {
 				JPanel flow = new JPanel(new FlowLayout(FlowLayout.LEFT));
 				JLabel date = getTextLabel(Integer.toString(day), 15, font);
 				
-				if (i % 7 == 1)
+				String holiday = holidays.get(String.format("%04d%02d%02d", year, month + 1, day));
+				
+				if (i % 7 == 1 || holiday != null)
 					date.setForeground(Style.getSundayColor());
 				else if (i % 7 == 0)
 					date.setForeground(Style.getSaturdayColor());
@@ -247,39 +242,40 @@ public class CalendarFrame extends BaseFrame {
 				flow.setBorder(new LineBorder(background, 5, false));
 				flow.setBackground(background);
 				
-				String holiday = holidays.get(String.format("%04d%02d%02d", year, month + 1, day));
 				
 				if (holiday != null) {
 					JLabel hol = getTextLabel(holiday, 10, font);
 					hol.setForeground(Style.getSundayColor());
 					flow.add(hol);
-			}
-
-				String now = String.format("%04d-%02d-%02d", year, month, day);
-				if (Data.schedule.containsKey(now)) {
-					p.add(getSchedulePanel(now), BorderLayout.CENTER);
 				}
-				
-				p.add(flow, BorderLayout.NORTH);
 
+				p.add(getSchedulePanel(String.format("%04d%02d%02d", year, month + 1, day)), BorderLayout.CENTER);
+				p.add(flow, BorderLayout.NORTH);
 				p.addMouseListener(new MouseAdapter() {
 					@Override
 					public void mouseClicked(MouseEvent e) {
-						super.mouseClicked(e);
 						if (e.getClickCount() == 2) {
-							if (Data.schedule.containsKey(p.getName())) {
-								if (Data.schedule.get(p.getName()).size() > 2) {
-									JOptionPane.showMessageDialog(null, "스케줄은 최대 3개까지 입력 가능합니다.", "경고",
-											JOptionPane.ERROR_MESSAGE);
-									return;
+							ResultSet rs = Data.getResultSet("select count(*) from schedule where date = '" + p.getName() + "'");
+							try {
+								if(rs.next()) {
+									if(rs.getInt("count(*)") > 2) {
+										JOptionPane.showMessageDialog(null, "스케줄은 최대 3개까지 입력 가능합니다.", "경고",
+												JOptionPane.ERROR_MESSAGE);
+									} else {		
+										new AddScheduleFrame(p.getName(), p.getX(), p.getY());
+									}
+								} else {
+									new AddScheduleFrame(p.getName(), p.getX(), p.getY());
 								}
+								rs.close();								
+							}catch(Exception e1) {
+								
 							}
-							new AddScheduleFrame(p.getName(), p.getX(), p.getY());
 						}
 					}
 				});
 				
-				p.setName(now);
+				p.setName(String.format("%04d%02d%02d", year, month + 1, day));
 				p.setBorder(new LineBorder(new Color(209, 209, 209)));
 				datePanel.add(p);
 				day++;
@@ -295,19 +291,31 @@ public class CalendarFrame extends BaseFrame {
 	private static JPanel getSchedulePanel(String date) {
 		JPanel panel = new JPanel(new GridLayout(0, 1));
 		
-		for (int j = 0; j < Data.schedule.get(date).size(); j++) {
-			JPanel line = new JPanel(new FlowLayout(FlowLayout.LEFT));
-			Schedule s = Data.schedule.get(date).get(j);
-			
-			JLabel label = getTextLabel(s.getText(), 10, font);
-			if (s.getColor() != null) {
-				line.setBackground(s.getColor());
-			} else {
-				line.setBackground(background);
-			}
-			
-			line.add(label);
-			panel.add(line);
+		String sql = "select * from schedule where date = '" + date + "'";
+		ResultSet rs = Data.getResultSet(sql);
+		
+		if(rs != null) {
+			try {
+				while(rs.next()) {
+					JPanel line = new JPanel(new FlowLayout(FlowLayout.LEFT));
+					
+					JLabel label = getTextLabel(rs.getString("text"), 10, font);
+					
+					if(rs.getInt("c_no") != 0) {						
+						ResultSet rs1 = Data.getResultSet("select * from color where c_no = '" + rs.getInt("c_no") + "'");
+						if(rs1.next()) {
+							line.setBackground(new Color(rs1.getInt("r"), rs1.getInt("g"), rs1.getInt("b")));							
+						}
+						rs1.close();
+					}else {
+						line.setBackground(background);						
+					}
+					
+					line.add(label);
+					panel.add(line);
+				}				
+				rs.close();
+			} catch(Exception e) {}
 		}
 
 		JPanel flow = new JPanel(new FlowLayout(FlowLayout.LEFT));
