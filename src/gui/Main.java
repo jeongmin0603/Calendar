@@ -1,16 +1,10 @@
 package gui;
 
-import db.Data;
-import db.Style;
+import db.SQLite;
 
 public class Main {
 	public static void main(String[] args) {
-		Style.setSheduleColors();
-		
-		if(!Data.isDbInit()) {
-			Data.createDb();
-		}
-		
+		SQLite.setTable();
 		new CalendarFrame();
 	}
 }

@@ -18,8 +18,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
-import db.Data;
 import db.Holiday;
+import db.SQLite;
 import db.Style;
 
 public class CalendarFrame extends BaseFrame {
@@ -256,7 +256,7 @@ public class CalendarFrame extends BaseFrame {
 					@Override
 					public void mouseClicked(MouseEvent e) {
 						if (e.getClickCount() == 2) {
-							ResultSet rs = Data.getResultSet("select count(*) from schedule where date = '" + p.getName() + "'");
+							ResultSet rs = SQLite.getResultSet("select count(*) from schedule where date = '" + p.getName() + "'");
 							try {
 								if(rs.next()) {
 									if(rs.getInt("count(*)") > 2) {
@@ -266,12 +266,12 @@ public class CalendarFrame extends BaseFrame {
 										new AddScheduleFrame(p.getName(), p.getX(), p.getY());
 									}
 								} else {
-									new AddScheduleFrame(p.getName(), p.getX(), p.getY());
+									System.out.println("asdf");
 								}
 								rs.close();								
-							}catch(Exception e1) {
-								
-							}
+							}catch(Exception e1) {}
+							new AddScheduleFrame(p.getName(), p.getX(), p.getY());
+							
 						}
 					}
 				});
@@ -292,9 +292,7 @@ public class CalendarFrame extends BaseFrame {
 	private static JPanel getSchedulePanel(String date) {
 		JPanel panel = new JPanel(new GridLayout(0, 1));
 		
-		String sql = "select * from schedule where date = '" + date + "'";
-		ResultSet rs = Data.getResultSet(sql);
-		
+		ResultSet rs = SQLite.getResultSet("select * from schedule where date = '" + date + "'");
 		if(rs != null) {
 			try {
 				while(rs.next()) {
@@ -302,8 +300,14 @@ public class CalendarFrame extends BaseFrame {
 					
 					JLabel label = getTextLabel(rs.getString("text"), 10, font);
 
-					if(rs.getString("c_no") != null) {				
-						line.setBackground(Style.checkColors.get(rs.getInt("c_no")));		
+					line.setName(rs.getString("s_no"));
+					if(rs.getString("c_no") != null) {	
+						int c_no = rs.getInt("c_no");
+						rs.close();
+						
+						ResultSet rs2 = SQLite.getResultSet("select * from color where c_no = '" + c_no + "'");						
+						line.setBackground(new Color(rs2.getInt("r"), rs2.getInt("g"), rs2.getInt("b")));		
+						rs2.close();
 					}else {
 						line.setBackground(background);	
 					}					
@@ -314,14 +318,13 @@ public class CalendarFrame extends BaseFrame {
 							if(e.getClickCount() == 2) {
 								int answer = JOptionPane.showConfirmDialog(null, "삭제하시겠습니까?", "경고", JOptionPane.ERROR_MESSAGE);
 								if(answer == 0) {
-									Data.setDb("delete from schedule where s_no = '" + line.getName() + "'");
+									SQLite.setDb("delete from schedule where s_no = '" + line.getName() + "'");
 									setDatePanel();
 								}
 							}
 						}
 					});
 					line.add(label);
-					line.setName(rs.getString("s_no"));
 					panel.add(line);
 				}				
 				rs.close();

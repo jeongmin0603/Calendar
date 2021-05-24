@@ -10,7 +10,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.ResultSet;
-import java.util.ArrayList;
+import java.sql.SQLException;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -19,15 +19,14 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.LineBorder;
 
-import db.Data;
-import db.Schedule;
+import db.SQLite;
 import db.Style;
 
 public class AddScheduleFrame extends BaseFrame {
 	static JFrame menu = new JFrame();
 	static JFrame colorPalette = new JFrame();
 	JTextField text = new JTextField();
-	Color pick = null;
+	String pick = null;
 	String date;
 
 	int x;
@@ -77,17 +76,24 @@ public class AddScheduleFrame extends BaseFrame {
 
 		JPanel palette = new JPanel(new GridLayout(0, 5, 1, 1));
 		palette.setBackground(background);
-
-		for (int i = 0; i < Style.getCheckColors().size(); i++) {
-			JButton btn = new JButton();
-			btn.setBackground(Color.BLACK);
-			btn.setBackground(Style.getCheckColors().get(i));
-			btn.addActionListener(v -> {
-				pick = btn.getBackground();
-				colorPalette.dispose();
-			});
-			btn.setPreferredSize(new Dimension(19, 19));
-			palette.add(btn);
+		
+		try {
+			ResultSet rs = SQLite.getResultSet("select * from color");
+			while(rs.next()) {
+				JButton btn = new JButton();
+				btn.setBackground(Color.BLACK);
+				btn.setBackground(new Color(rs.getInt("r"), rs.getInt("g"), rs.getInt("b")));
+				btn.addActionListener(v -> {
+					pick = btn.getName();
+					colorPalette.dispose();
+				});
+				btn.setName(rs.getString("c_no"));
+				btn.setPreferredSize(new Dimension(19, 19));
+				palette.add(btn);			
+			}
+			rs.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 		panel.add(palette);
 
@@ -153,17 +159,9 @@ public class AddScheduleFrame extends BaseFrame {
 				try {
 					if (!text.getText().isEmpty()) {
 						if (pick != null) {
-							int cnt = 0;
-							for(int i = 0; i < Style.checkColors.size(); i++) {
-								if(pick.equals(Style.getCheckColors().get(i))) {
-									cnt = i;
-									break;
-								}
-							}
-							
-							Data.setDb("insert into schedule(date, text, c_no) values('" + date + "', '" + text.getText() + "', '" + cnt + "')");
+							SQLite.insertSchedule(date, text.getText(), pick);
 						} else {
-							Data.setDb("insert into schedule(date, text) values('" + date.replace("-", "") + "', '" + text.getText() + "')");
+							SQLite.insertSchedule(date, text.getText());
 						}
 
 						CalendarFrame.setDatePanel();
