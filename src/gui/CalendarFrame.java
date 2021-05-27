@@ -7,9 +7,10 @@ import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.JFrame;
@@ -39,6 +40,9 @@ public class CalendarFrame extends BaseFrame {
 	static int month;
 
 	public CalendarFrame() {
+		x = 1120;
+		y = 0;
+		
 		background = Style.getBackgroundColor_light();
 		font = Style.getFontColor_light();
 		
@@ -49,7 +53,7 @@ public class CalendarFrame extends BaseFrame {
 		mainPanel.add(getTitlePanel(), BorderLayout.NORTH);
 		mainPanel.add(getCalendarPanel(), BorderLayout.CENTER);
 
-		jf.setLocation(1120, 0);
+		jf.setLocation(x, y);
 		jf.add(mainPanel);
 		jf.setVisible(true);
 	}
@@ -266,12 +270,10 @@ public class CalendarFrame extends BaseFrame {
 										new AddScheduleFrame(p.getName(), p.getX(), p.getY());
 									}
 								} else {
-									System.out.println("asdf");
+									new AddScheduleFrame(p.getName(), p.getX(), p.getY());
 								}
 								rs.close();								
 							}catch(Exception e1) {}
-							new AddScheduleFrame(p.getName(), p.getX(), p.getY());
-							
 						}
 					}
 				});
@@ -288,26 +290,26 @@ public class CalendarFrame extends BaseFrame {
 		datePanel.revalidate();
 		datePanel.repaint();
 	}
-
+	
 	private static JPanel getSchedulePanel(String date) {
 		JPanel panel = new JPanel(new GridLayout(0, 1));
+		List<Map<String, JPanel>> list = new ArrayList<>();
 		
 		ResultSet rs = SQLite.getResultSet("select * from schedule where date = '" + date + "'");
+		
 		if(rs != null) {
 			try {
 				while(rs.next()) {
 					JPanel line = new JPanel(new FlowLayout(FlowLayout.LEFT));
-					
 					JLabel label = getTextLabel(rs.getString("text"), 10, font);
 
 					line.setName(rs.getString("s_no"));
-					if(rs.getString("c_no") != null) {	
-						int c_no = rs.getInt("c_no");
-						rs.close();
-						
-						ResultSet rs2 = SQLite.getResultSet("select * from color where c_no = '" + c_no + "'");						
-						line.setBackground(new Color(rs2.getInt("r"), rs2.getInt("g"), rs2.getInt("b")));		
-						rs2.close();
+					String c_no = rs.getString("c_no");
+					
+					if(c_no != null) {	
+						Map<String, JPanel> map = new HashMap<>();
+						map.put(c_no, line);
+						list.add(map);
 					}else {
 						line.setBackground(background);	
 					}					
@@ -326,11 +328,27 @@ public class CalendarFrame extends BaseFrame {
 					});
 					line.add(label);
 					panel.add(line);
-				}				
+				}		
 				rs.close();
-			} catch(Exception e) {}
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
 		}
-
+		
+		for(int i = 0; i < list.size(); i++) {
+			Map<String, JPanel> map = list.get(i);
+			for(String key : map.keySet()) {
+				try {
+					ResultSet rs1 = SQLite.getResultSet("select * from color where c_no = '" + key + "'");	
+					Color color = new Color(rs.getInt("r"), rs.getInt("g"), rs.getInt("b"));
+					map.get(key).setBackground(color);
+					rs1.close();					
+				}catch(Exception e) {
+					
+				}
+			}
+		}
+		
 		JPanel flow = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		flow.add(panel);
 		panel.setBackground(background);

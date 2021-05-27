@@ -36,10 +36,10 @@ public class SQLite {
 	}
 	
 	public static void setTable() {
-		ResultSet rs = getResultSet("select count(*) from sqlite_master where name = 'schedule' or name = 'color'");
+		ResultSet rs = getResultSet("select count(*) from sqlite_master where name = 'schedule' or name = 'color' or name = 'position'");
 		
 		try {
-			if(rs.getInt("count(*)") != 2) {
+			if(rs.getInt("count(*)") != 3) {
 				Color[] colors = {
 						new Color(249, 237, 105),
 						new Color(240, 138, 93),
@@ -52,6 +52,9 @@ public class SQLite {
 						new Color(192, 226, 24),
 						new Color(199, 0, 57),
 				};
+				stmt.execute("drop table if exists \"schedule\"");
+				stmt.execute("drop table if exists \"color\"");
+				stmt.execute("drop table if exists \"position\"");
 				
 				stmt.execute("CREATE TABLE if not exists \"schedule\" (\r\n" + 
 						"	\"s_no\"	INTEGER NOT NULL,\r\n" + 
@@ -67,7 +70,13 @@ public class SQLite {
 						"	\"b\"	INTEGER NOT NULL,\r\n" + 
 						"	PRIMARY KEY(\"c_no\" AUTOINCREMENT)\r\n" + 
 						");");
-			
+				stmt.execute("CREATE TABLE if not exists \"position\" (\r\n" + 
+						"	\"pk\"	INTEGER NOT NULL,\r\n" + 
+						"	\"x\"	INTEGER NOT NULL,\r\n" + 
+						"	\"y\"	INTEGER NOT NULL,\r\n" + 
+						"	PRIMARY KEY(\"pk\" AUTOINCREMENT)\r\n" + 
+						");");
+					
 				PreparedStatement pst = con.prepareStatement("insert into color values(NULL, ?, ?, ?)");
 				for(int i = 0; i < colors.length; i++) {
 					Color color = colors[i];
@@ -102,6 +111,7 @@ public class SQLite {
 			e.printStackTrace();
 		}
 	}
+	
 	public static void insertSchedule(String date, String text) {
 		try {
 			PreparedStatement pst = con.prepareStatement("insert into schedule values(NULL, ?, ?, NULL)");

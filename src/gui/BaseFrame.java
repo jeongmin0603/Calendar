@@ -14,6 +14,11 @@ public class BaseFrame {
 	static Color background = null;
 	static Color font = null;
 	
+	public static int x;
+	public static int y;
+	public static int w;
+	public static int h;
+	
 	public static JFrame createBaseFrame(int w, int h) {
 		JFrame jf = new JFrame();
 		jf.setSize(w, h);
