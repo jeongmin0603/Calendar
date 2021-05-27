@@ -7,6 +7,7 @@ import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.ResultSet;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -34,6 +35,7 @@ public class CalendarFrame extends BaseFrame {
 	JPanel back = new JPanel(new FlowLayout(FlowLayout.LEFT));
 	JPanel next = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 	JPanel lightOrDark = new JPanel(new FlowLayout());
+	JPanel nowDatePanel = new JPanel(new FlowLayout());
 	static JPanel datePanel = new JPanel(new GridLayout(0, 7));
 
 	static int year;
@@ -52,10 +54,37 @@ public class CalendarFrame extends BaseFrame {
 
 		mainPanel.add(getTitlePanel(), BorderLayout.NORTH);
 		mainPanel.add(getCalendarPanel(), BorderLayout.CENTER);
-
+	
 		jf.setLocation(x, y);
 		jf.add(mainPanel);
+		jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		jf.setVisible(true);
+	}
+	private JPanel getNowTimePanel() {
+		nowDatePanel.setBackground(background);
+		nowDatePanel.setForeground(font);
+		
+		new Thread(new Runnable() {			
+			@Override
+			public void run() {
+				SimpleDateFormat format = new SimpleDateFormat("yyyy년 MM월 dd일 HH시 mm분 ss초");
+				String time;
+				while(true) {
+					try {
+						Thread.sleep(1000);
+						time = format.format(Calendar.getInstance().getTime());
+						nowDatePanel.removeAll();
+						nowDatePanel.add(getTextLabel(time, 20, font));
+						nowDatePanel.revalidate();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}			
+				}
+			}
+		}).start();
+		
+		
+		return nowDatePanel;
 	}
 	
 	private JPanel getTitlePanel() {
@@ -109,6 +138,10 @@ public class CalendarFrame extends BaseFrame {
 				for(int i = 0; i < labels.size(); i++) {
 					labels.get(i).setForeground(font);
 				}
+				
+				nowDatePanel.setBackground(background);
+				nowDatePanel.getComponent(0).setForeground(font);
+				
 				setTitleDatePanel();
 				setDatePanel();
 			}
@@ -117,6 +150,7 @@ public class CalendarFrame extends BaseFrame {
 		panel.add(lightOrDark, BorderLayout.WEST);
 		panel.add(close, BorderLayout.EAST);
 		panel.add(date, BorderLayout.CENTER);
+		panel.add(getNowTimePanel(), BorderLayout.SOUTH);
 		
 		panels.add(panel);
 		panels.add(date);
@@ -310,6 +344,7 @@ public class CalendarFrame extends BaseFrame {
 						Map<String, JPanel> map = new HashMap<>();
 						map.put(c_no, line);
 						list.add(map);
+						label.setForeground(Style.getFontColor_light());
 					}else {
 						line.setBackground(background);	
 					}					
@@ -343,9 +378,7 @@ public class CalendarFrame extends BaseFrame {
 					Color color = new Color(rs.getInt("r"), rs.getInt("g"), rs.getInt("b"));
 					map.get(key).setBackground(color);
 					rs1.close();					
-				}catch(Exception e) {
-					
-				}
+				}catch(Exception e) {}
 			}
 		}
 		

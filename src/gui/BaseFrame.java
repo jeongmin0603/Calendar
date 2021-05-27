@@ -34,6 +34,12 @@ public class BaseFrame {
 		label.setForeground(color);
 		return label;
 	}
+	
+	public static JLabel getTextLabel(String text, int size) {
+		JLabel label = new JLabel(text);
+		label.setFont(new Font("HY헤드라인M", Font.PLAIN, size));
+		return label;
+	}
  	
 	public static ImageIcon getImageIcon(String file, int width, int heigth) {
 		return new ImageIcon(new ImageIcon(System.getProperty("user.dir") + "\\icon\\" + file).getImage().getScaledInstance(width, heigth, Image.SCALE_SMOOTH));

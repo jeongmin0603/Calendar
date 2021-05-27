@@ -58,6 +58,7 @@ public class AddScheduleFrame extends BaseFrame {
 		panel.setBackground(background);
 		menu.add(panel);
 		menu.setLocation(x + 1160, y + 157);
+		
 		menu.setVisible(true);
 	}
 
