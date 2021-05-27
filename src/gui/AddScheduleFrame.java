@@ -26,26 +26,47 @@ public class AddScheduleFrame extends BaseFrame {
 	static JFrame menu = new JFrame();
 	static JFrame colorPalette = new JFrame();
 	JTextField text = new JTextField();
+	
 	String pick = null;
 	String date;
+	String s_no;
+	
+	Color color = null;
 
+	boolean isChange = false;
+	
 	int x;
 	int y;
 
+	public AddScheduleFrame(String s_no, String date, String text, int x, int y, Color color) {
+		this.s_no = s_no;
+		this.x = x;
+		this.y = y;
+		
+		this.text.setText(text);
+		this.color = color;
+		this.date = date;
+		
+		isChange = true;
+		
+		setBaseFrame();
+	}
 	public AddScheduleFrame(String date, int x, int y) {
+		this.date = date;
+		this.x = x;
+		this.y = y;
+		
+		setBaseFrame();
+	}
+	private void setBaseFrame() {
 		if (menu.isVisible()) {
 			menu.setVisible(false);
 		}
 		if (colorPalette.isVisible()) {
 			colorPalette.setVisible(false);
 		}
-
 		menu = createBaseFrame(140, 150);
 		colorPalette = createBaseFrame(100, 50);
-
-		this.date = date;
-		this.x = x;
-		this.y = y;
 
 		setColorPaletteFrame();
 		
@@ -159,10 +180,30 @@ public class AddScheduleFrame extends BaseFrame {
 			public void mouseClicked(MouseEvent e) {
 				try {
 					if (!text.getText().isEmpty()) {
-						if (pick != null) {
-							SQLite.insertSchedule(date, text.getText(), pick);
-						} else {
-							SQLite.insertSchedule(date, text.getText());
+						if(isChange) {
+							if (pick != null) {
+								System.out.println("update schedule set text = '" + text.getText() + "' and c_no = '" + pick + "' where s_no = '" + s_no + "'");
+								SQLite.setDb("update schedule set text = \"" + text.getText() + "\", c_no = \"" + pick + "\" where s_no = '" + s_no + "'");
+								
+							} else {
+								ResultSet rs = SQLite.getResultSet("select * from color where r = '" + color.getRed() + "' and g = '" + color.getGreen() + "' and b = '" + color.getBlue() + "'");
+								System.out.println("select * from color where r = '" + color.getRed() + "' and g = '" + color.getGreen() + "' and b = '" + color.getBlue() + "'");
+								if(rs.next()) {
+									String c_no = rs.getString("c_no");
+									System.out.println("update schedule set text = '" + text.getText() + "' and c_no = '" + c_no + "' where s_no = '" + s_no + "'");
+									SQLite.setDb("update schedule set text = \"" + text.getText() + "\", c_no = \"" + c_no + "\" where s_no = '" + s_no + "'");
+								} else {
+									SQLite.setDb("update schedule set text = \"" + text.getText() + "\" where s_no = '" + s_no + "'");
+								}
+								
+								rs.close();
+							}
+						} else {							
+							if (pick != null) {
+								SQLite.insertSchedule(date, text.getText(), pick);
+							} else {
+								SQLite.insertSchedule(date, text.getText());
+							}
 						}
 
 						CalendarFrame.setDatePanel();

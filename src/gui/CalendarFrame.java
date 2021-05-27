@@ -2,6 +2,8 @@ package gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
@@ -357,7 +359,24 @@ public class CalendarFrame extends BaseFrame {
 								if(answer == 0) {
 									SQLite.setDb("delete from schedule where s_no = '" + line.getName() + "'");
 									setDatePanel();
+								} 
+							} else if(e.getClickCount() == 1) {
+								Container p = line.getParent().getParent().getParent();
+								String text = "";	
+								
+								try {
+									ResultSet rs = SQLite.getResultSet("select * from schedule where s_no = '" + line.getName() + "'");
+									
+									if (rs.next()) {
+										text = rs.getString("text");
+									}
+									
+									rs.close();
+								} catch(Exception e1) {
+									e1.printStackTrace();
 								}
+								System.out.println(line.getBackground());
+								new AddScheduleFrame(line.getName(), p.getName(), text, p.getX(), p.getY(), line.getBackground());
 							}
 						}
 					});
